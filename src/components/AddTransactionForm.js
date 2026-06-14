@@ -38,6 +38,7 @@ export default function AddTransactionForm({ onAdd }) {
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ amount, category: category.trim(), type, date, note }),
       });
 

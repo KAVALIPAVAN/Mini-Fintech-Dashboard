@@ -7,6 +7,7 @@ import InsightCard from "@/components/InsightCard";
 import CategoryChart from "@/components/CategoryChart";
 import Filters from "@/components/Filters";
 import TransactionList from "@/components/TransactionList";
+import AuthWidget from "@/components/AuthWidget";
 import { getSummary, getInsight, filterTransactions } from "@/lib/insights";
 
 export default function Home() {
@@ -15,7 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/transactions");
+    const res = await fetch("/api/transactions", { credentials: "include" });
     const data = await res.json();
     setAllTransactions(data.all || []);
     setLoading(false);
@@ -43,7 +44,7 @@ export default function Home() {
 
   async function handleDelete(id) {
     setAllTransactions((prev) => prev.filter((t) => t.id !== id));
-    const res = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/transactions/${id}`, { method: "DELETE", credentials: "include" });
     if (!res.ok) {
       // revert on failure
       await load();
@@ -60,14 +61,17 @@ export default function Home() {
               A running record of what comes in and what goes out.
             </p>
           </div>
-          <span className="font-mono text-xs text-ink-soft hidden sm:block">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
+          <div className="flex items-center gap-4">
+            <AuthWidget onAuthChange={load} />
+            <span className="font-mono text-xs text-ink-soft hidden sm:block">
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr]">
