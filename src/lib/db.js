@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
 const DB_NAME = process.env.MONGODB_DB || "fintech";
@@ -7,8 +7,28 @@ let client;
 let clientPromise;
 
 if (!global._mongoClientPromise) {
-  client = new MongoClient(MONGODB_URI);
-  clientPromise = client.connect();
+  const clientOptions = {
+    serverApi: ServerApiVersion.v1,
+    tls: true,
+    appName: "fintech-dashboard",
+    retryWrites: true,
+    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 10000,
+    minPoolSize: 1,
+    maxPoolSize: 5,
+  };
+
+  if (process.env.MONGODB_TLS_INSECURE === "true") {
+    clientOptions.tlsAllowInvalidCertificates = true;
+    clientOptions.tlsAllowInvalidHostnames = true;
+  }
+
+  client = new MongoClient(MONGODB_URI, clientOptions);
+  clientPromise = client.connect().catch((error) => {
+    console.error("MongoDB connection failed:", error);
+    throw error;
+  });
   global._mongoClientPromise = clientPromise;
 } else {
   clientPromise = global._mongoClientPromise;
